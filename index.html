@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>iPhone壁紙メーカー</title>
+<style>
+  :root{
+    --bg:#101014; --card:#1b1b22; --line:#2c2c38; --txt:#f2f2f5; --sub:#a7a7b5;
+    --accent:#ffd60a; --accent-txt:#1a1a00; --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0; background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;}
+  header{padding:14px 16px 4px;}
+  header h1{font-size:19px; margin:0;}
+  header p{color:var(--sub); font-size:12.5px; margin:4px 0 0; line-height:1.55;}
+  main{max-width:560px; margin:0 auto; padding:10px 14px 40px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; margin-bottom:12px;}
+  .card h2{font-size:13px; margin:0 0 10px; color:var(--sub); letter-spacing:.04em;}
+  label.row{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-size:14px; padding:6px 0;}
+  select,input[type=number],input[type=text]{
+    background:#26262f; color:var(--txt); border:1px solid var(--line);
+    border-radius:9px; padding:8px 10px; font-size:14px; min-width:0;}
+  select{max-width:62%;}
+  input[type=range]{width:100%; accent-color:var(--accent); margin:2px 0 0;}
+  .slider-head{display:flex; justify-content:space-between; font-size:13.5px; margin-top:10px;}
+  .slider-head output{color:var(--sub); font-variant-numeric:tabular-nums;}
+  button{border:1px solid var(--line); background:#26262f; color:var(--txt);
+    border-radius:10px; padding:9px 12px; font-size:14px; cursor:pointer;}
+  button:active{opacity:.75;}
+  button.primary{background:var(--accent); color:var(--accent-txt); border:none;
+    font-weight:700; width:100%; padding:13px; font-size:15.5px;}
+  button.seg{flex:1; padding:9px 4px; font-size:13.5px;}
+  button.seg.on{background:var(--accent); color:var(--accent-txt); border-color:transparent; font-weight:700;}
+  button.danger{width:100%; padding:12px; border-color:#5a2b33; background:#33222a; color:#ffb3c0; font-weight:600;}
+  .segrow{display:flex; gap:8px;}
+  .filebtn{display:block; text-align:center; background:var(--accent); color:var(--accent-txt);
+    font-weight:700; border-radius:10px; padding:13px; font-size:15.5px; cursor:pointer;}
+  input[type=file]{display:none;}
+  input[type=color]{width:56px; height:36px; border:1px solid var(--line); border-radius:9px;
+    background:#26262f; padding:3px; cursor:pointer;}
+  .swatches{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;}
+  .sw{width:30px; height:30px; border-radius:50%; border:2px solid var(--line); cursor:pointer; padding:0;}
+  .nudge{display:grid; grid-template-columns:repeat(3,52px); gap:6px; justify-content:center; margin-top:10px;}
+  .nudge button{padding:8px 0; font-size:16px;}
+  .nudge .sp{visibility:hidden;}
+
+  /* サムネイル一覧 */
+  #thumbs{display:flex; gap:10px; overflow-x:auto; padding:4px 2px 8px; -webkit-overflow-scrolling:touch;}
+  .thumb{position:relative; flex:0 0 auto; width:64px; cursor:pointer;}
+  .thumb img{width:64px; height:88px; object-fit:cover; border-radius:9px; border:2px solid var(--line); display:block;}
+  .thumb.on img{border-color:var(--accent);}
+  .thumb .no{position:absolute; left:4px; bottom:4px; background:rgba(0,0,0,.65); color:#fff;
+    font-size:10.5px; padding:1px 6px; border-radius:999px;}
+  .thumb .del{position:absolute; top:-7px; right:-7px; width:22px; height:22px; border-radius:50%;
+    background:#3a3a44; color:#fff; border:1px solid var(--line); font-size:12px; line-height:1; padding:0;}
+
+  /* プレビュー */
+  #stage{position:relative; margin:0 auto; width:min(300px,82vw);
+    border-radius:34px; overflow:hidden; background:#000;
+    box-shadow:0 0 0 3px #33333f, 0 10px 30px rgba(0,0,0,.5);
+    container-type:inline-size; touch-action:none; user-select:none; -webkit-user-select:none;}
+  #stage canvas{display:block; width:100%; height:auto;}
+  #emptyMsg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--sub); font-size:13.5px; text-align:center; padding:20px; pointer-events:none;}
+  #clock{position:absolute; inset:0; pointer-events:none; color:#fff;
+    text-shadow:0 1px 10px rgba(0,0,0,.45); display:none;}
+  #clock.show{display:block;}
+  #clock.dark{color:#111; text-shadow:0 1px 8px rgba(255,255,255,.5);}
+  #clock .date{position:absolute; top:15.5%; width:100%; text-align:center; font-size:6.2cqw; font-weight:600;}
+  #clock .time{position:absolute; top:19%; width:100%; text-align:center; font-size:24cqw; font-weight:800; line-height:1; letter-spacing:-.01em;}
+  #clock .lock{position:absolute; top:6.5%; width:100%; text-align:center; font-size:7cqw;}
+  #clock .pill{position:absolute; top:2.2%; left:50%; transform:translateX(-50%);
+    width:34%; height:3.4%; background:rgba(0,0,0,.85); border-radius:999px;}
+  #clock .homebar{position:absolute; bottom:1.2%; left:50%; transform:translateX(-50%);
+    width:38%; height:.9%; min-height:3px; background:currentColor; opacity:.9; border-radius:999px;}
+  #clock .circle{position:absolute; bottom:4.6%; width:13.5%; aspect-ratio:1; border-radius:50%;
+    background:rgba(30,30,35,.55); display:flex; align-items:center; justify-content:center; font-size:6.5cqw; text-shadow:none;}
+  #clock .circle.left{left:11%;} #clock .circle.right{right:11%;}
+  .hint{color:var(--sub); font-size:12px; margin-top:8px; line-height:1.55;}
+  .actions{display:flex; flex-direction:column; gap:8px;}
+  .dim{display:flex; gap:8px; align-items:center;}
+  .dim input{width:88px;}
+  footer{color:var(--sub); font-size:11.5px; text-align:center; padding:0 16px 28px; line-height:1.6;}
+</style>
+</head>
+<body>
+<header>
+  <h1>📱 iPhone壁紙メーカー</h1>
+  <p>推しメンの画像を壁紙化する用。同じ人の画像はまとめて読み込んで、メンカラの幕で一気に書き出し。別の人になったら「全部リセット」でやり直せます。画像は端末の外に送信されません。</p>
+</header>
+<main>
+
+  <div class="card">
+    <label class="filebtn" for="fileInput">🖼 画像を選ぶ（複数可）</label>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <div id="thumbsWrap" style="display:none; margin-top:12px;">
+      <div class="slider-head" style="margin-top:0;"><span id="countLabel">0枚</span><span class="hint" style="margin:0;">タップで切替・×で除外</span></div>
+      <div id="thumbs"></div>
+    </div>
+    <div class="hint">同じ推しメンの画像をまとめて選ぶのがおすすめです。位置の微調整は画像ごとに覚えます。</div>
+  </div>
+
+  <div class="card">
+    <h2>プレビュー（ドラッグで移動）</h2>
+    <div id="stage">
+      <canvas id="cv" width="1290" height="2796"></canvas>
+      <div id="emptyMsg">まだ画像がありません<br>上のボタンから選んでください</div>
+      <div id="clock" class="show">
+        <div class="pill"></div>
+        <div class="lock">🔒</div>
+        <div class="date" id="clockDate">10月29日（水）</div>
+        <div class="time" id="clockTime">9:41</div>
+        <div class="circle left">🔦</div>
+        <div class="circle right">📷</div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <div class="hint" id="curLabel" style="text-align:center;">編集中：-</div>
+    <label class="row" style="margin-top:6px;">
+      <span>🕐 時計プレビューを表示</span>
+      <input type="checkbox" id="clockToggle" checked style="width:22px;height:22px;accent-color:var(--accent);">
+    </label>
+    <div class="segrow" role="group" aria-label="時計の色">
+      <button class="seg on" id="clockWhite" type="button">時計：白文字</button>
+      <button class="seg" id="clockBlack" type="button">時計：黒文字</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>画面サイズ（全画像共通）</h2>
+    <label class="row"><span>端末プリセット</span>
+      <select id="preset">
+        <option value="device">この端末に合わせる</option>
+        <option value="1290x2796" selected>iPhone 15 Pro Max（1290×2796）</option>
+        <option value="1320x2868">iPhone 16 Pro Max（1320×2868）</option>
+        <option value="1206x2622">iPhone 16 Pro（1206×2622）</option>
+        <option value="1179x2556">iPhone 15 / 15 Pro / 16（1179×2556）</option>
+        <option value="1170x2532">iPhone 13 / 14（1170×2532）</option>
+        <option value="750x1334">iPhone SE（750×1334）</option>
+        <option value="custom">カスタム（下の数値）</option>
+      </select>
+    </label>
+    <label class="row"><span>幅 × 高さ（px）</span>
+      <span class="dim">
+        <input type="number" id="outW" value="1290" min="100" max="6000" inputmode="numeric">
+        <span>×</span>
+        <input type="number" id="outH" value="2796" min="100" max="6000" inputmode="numeric">
+      </span>
+    </label>
+  </div>
+
+  <div class="card">
+    <h2>幕の色 ＝ メンカラ（全画像共通）</h2>
+    <label class="row"><span>幕の色</span>
+      <span style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="hexText" value="#000000" style="width:92px;" spellcheck="false">
+        <input type="color" id="bgColor" value="#000000">
+      </span>
+    </label>
+    <div class="swatches" id="swatches"></div>
+    <div class="segrow" style="margin-top:12px;" role="group" aria-label="幕の種類">
+      <button class="seg on" data-bgmode="color" type="button">メンカラの幕</button>
+      <button class="seg" data-bgmode="average" type="button">画像の平均色</button>
+      <button class="seg" data-bgmode="blur" type="button">ぼかし幕</button>
+    </div>
+    <div class="slider-head"><span>時計エリアの上幕（0＝画像全面）</span><output id="topBarVal">0 px</output></div>
+    <input type="range" id="topBar" min="0" max="800" step="1" value="0">
+    <div class="hint">時計の後ろだけ幕にしたいときはここを上げてください（全画像共通）。0なら時計のところにも画像が出ます。</div>
+  </div>
+
+  <div class="card">
+    <h2>画像の位置・大きさ（編集中の画像のみ）</h2>
+    <div class="segrow" role="group" aria-label="フィット">
+      <button class="seg on" data-fit="contain" type="button">全体を表示（幕が出る）</button>
+      <button class="seg" data-fit="cover" type="button">画面いっぱい（切り取り）</button>
+    </div>
+    <div class="hint">「全体を表示／画面いっぱい」は全画像共通の設定です。</div>
+    <div class="slider-head"><span>拡大・縮小</span><output id="zoomVal">100%</output></div>
+    <input type="range" id="zoom" min="10" max="400" step="1" value="100">
+    <div class="slider-head"><span>左右の位置</span><output id="xVal">0 px</output></div>
+    <input type="range" id="offX" min="-1500" max="1500" step="1" value="0">
+    <div class="slider-head"><span>上下の位置</span><output id="yVal">0 px</output></div>
+    <input type="range" id="offY" min="-1500" max="1500" step="1" value="0">
+    <div class="nudge" aria-label="1pxずつ微調整">
+      <span class="sp"></span><button type="button" data-nx="0" data-ny="-1">▲</button><span class="sp"></span>
+      <button type="button" data-nx="-1" data-ny="0">◀</button>
+      <button type="button" id="centerBtn">中央</button>
+      <button type="button" data-nx="1" data-ny="0">▶</button>
+      <span class="sp"></span><button type="button" data-nx="0" data-ny="1">▼</button><span class="sp"></span>
+    </div>
+    <div class="hint">矢印ボタンは1回で1px、長押しで10pxずつ動きます。「中央」は編集中の画像の位置と拡大だけを戻します。</div>
+    <div class="segrow" style="margin-top:10px;">
+      <button class="seg" id="rotBtn" type="button">↻ 90°回転（この画像）</button>
+      <button class="seg" id="applyAllBtn" type="button">この位置を全画像にコピー</button>
+    </div>
+  </div>
+
+  <div class="card actions">
+    <button class="primary" id="batchBtn" type="button">🗂 全部まとめて書き出し（同じ色・設定）</button>
+    <button id="shareBtn" type="button">⬇ 編集中の1枚を保存する</button>
+    <button id="dlBtn" type="button">編集中の1枚をダウンロード（PNG）</button>
+    <div class="hint">「全部まとめて書き出し」は共有シートが開くので「画像を保存」を選ぶと全枚数が写真アプリに入ります。書き出しサイズは <span id="sizeNote">1290×2796</span>（時計プレビューは書き出されません）。</div>
+  </div>
+
+  <div class="card">
+    <h2>次の人へ</h2>
+    <button class="danger" id="resetBtn" type="button">🧹 全部リセット（画像・色・調整を消す）</button>
+    <div class="hint">別のメンカラの人をやるとき用。読み込んだ画像と色・位置の調整を全部消して、最初の状態に戻します。</div>
+  </div>
+
+</main>
+<footer>このツールは端末内だけで動作します（画像のアップロードなし）。</footer>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const stage = $('stage'), clockEl = $('clock');
+
+/* 全画像共通の設定 */
+const G = { fit: 'contain', bgMode: 'color', bg: '#000000', topBar: 0 };
+/* 画像ごとのエントリ {img,url,name,avg,zoom,x,y,rot} */
+let images = [], cur = -1;
+const curE = () => (cur >= 0 && cur < images.length) ? images[cur] : null;
+
+function outSize(){
+  let w = parseInt($('outW').value, 10), h = parseInt($('outH').value, 10);
+  if (!isFinite(w) || w < 100) w = 1290;
+  if (!isFinite(h) || h < 100) h = 2796;
+  return { w: Math.min(w, 6000), h: Math.min(h, 6000) };
+}
+function imgDims(e){
+  const swap = e.rot % 180 !== 0;
+  return { w: swap ? e.img.naturalHeight : e.img.naturalWidth,
+           h: swap ? e.img.naturalWidth : e.img.naturalHeight };
+}
+function computeAvgColor(img){
+  try{
+    const c = document.createElement('canvas'); c.width = 24; c.height = 24;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(img, 0, 0, 24, 24);
+    const d = g.getImageData(0, 0, 24, 24).data;
+    let r = 0, gg = 0, b = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4){ r += d[i]; gg += d[i+1]; b += d[i+2]; n++; }
+    const hex = v => Math.round(v).toString(16).padStart(2, '0');
+    return '#' + hex(r/n) + hex(gg/n) + hex(b/n);
+  }catch(e){ return '#000000'; }
+}
+
+/* 描画：g（対象ctx）に W×H でエントリ e を描く。プレビューと一括書き出しで共用 */
+function render(g, W, H, e){
+  g.save();
+  g.filter = 'none';
+  if (G.bgMode === 'blur' && e){
+    g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+    const d = imgDims(e);
+    const s = Math.max(W / d.w, H / d.h) * 1.15;
+    g.filter = 'blur(' + Math.round(W * 0.045) + 'px) brightness(.85) saturate(1.2)';
+    drawImg(g, e, W/2, H/2, d.w * s, d.h * s);
+    g.filter = 'none';
+  } else {
+    g.fillStyle = G.bgMode === 'average' ? (e ? e.avg : '#000000') : G.bg;
+    g.fillRect(0, 0, W, H);
+  }
+  g.restore();
+  if (e){
+    const d = imgDims(e);
+    const base = G.fit === 'cover' ? Math.max(W / d.w, H / d.h) : Math.min(W / d.w, H / d.h);
+    const s = base * e.zoom;
+    drawImg(g, e, W/2 + e.x, H/2 + e.y, d.w * s, d.h * s);
+  }
+  if (G.topBar > 0){
+    g.fillStyle = G.bgMode === 'average' ? (e ? e.avg : '#000000') : G.bg;
+    g.fillRect(0, 0, W, Math.min(G.topBar, H));
+  }
+}
+function drawImg(g, e, cx, cy, dw, dh){
+  g.save();
+  g.translate(cx, cy);
+  g.rotate(e.rot * Math.PI / 180);
+  const swap = e.rot % 180 !== 0;
+  const w = swap ? dh : dw, h = swap ? dw : dh;
+  g.drawImage(e.img, -w/2, -h/2, w, h);
+  g.restore();
+}
+function draw(){
+  const { w: W, h: H } = outSize();
+  if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
+  $('sizeNote').textContent = W + '×' + H;
+  render(ctx, W, H, curE());
+  $('emptyMsg').style.display = curE() ? 'none' : 'flex';
+  const e = curE();
+  $('curLabel').textContent = e ? ('編集中：' + (cur + 1) + '枚目 / 全' + images.length + '枚（' + e.name + '）') : '編集中：-';
+  $('batchBtn').textContent = images.length > 1
+    ? '🗂 全部まとめて書き出し（' + images.length + '枚・同じ色）'
+    : '🗂 全部まとめて書き出し（同じ色・設定）';
+}
+
+/* ---------- 画像の読み込み ---------- */
+$('fileInput').addEventListener('change', ev => {
+  const files = Array.from(ev.target.files || []);
+  if (files.length) loadFiles(files);
+  ev.target.value = '';
+});
+function loadFiles(files){
+  let firstNew = -1, pending = files.length;
+  files.forEach(f => {
+    const url = URL.createObjectURL(f);
+    const img = new Image();
+    img.onload = () => {
+      const e = { img, url, name: (f.name || 'image').replace(/\.[^.]+$/, '') || 'image',
+                  avg: '#000000', zoom: 1, x: 0, y: 0, rot: 0 };
+      e.avg = computeAvgColor(img);
+      images.push(e);
+      if (firstNew < 0) firstNew = images.length - 1;
+      if (--pending === 0){ select(firstNew >= 0 ? firstNew : images.length - 1); refreshThumbs(); }
+    };
+    img.onerror = () => { if (--pending === 0){ refreshThumbs(); draw(); } };
+    img.src = url;
+  });
+}
+['dragover','dragleave','drop'].forEach(ev => stage.addEventListener(ev, e => {
+  e.preventDefault();
+  if (ev === 'drop' && e.dataTransfer.files && e.dataTransfer.files.length)
+    loadFiles(Array.from(e.dataTransfer.files));
+}));
+function refreshThumbs(){
+  const wrap = $('thumbs'); wrap.innerHTML = '';
+  $('thumbsWrap').style.display = images.length ? 'block' : 'none';
+  $('countLabel').textContent = images.length + '枚 読み込み中';
+  images.forEach((e, i) => {
+    const d = document.createElement('div');
+    d.className = 'thumb' + (i === cur ? ' on' : '');
+    const im = document.createElement('img'); im.src = e.url; im.alt = e.name;
+    const no = document.createElement('span'); no.className = 'no'; no.textContent = (i + 1) + '';
+    const del = document.createElement('button'); del.className = 'del'; del.type = 'button'; del.textContent = '×';
+    del.addEventListener('click', ev => { ev.stopPropagation(); removeAt(i); });
+    d.appendChild(im); d.appendChild(no); d.appendChild(del);
+    d.addEventListener('click', () => select(i));
+    wrap.appendChild(d);
+  });
+}
+function select(i){
+  cur = i; syncControls(); refreshThumbs(); draw();
+}
+function removeAt(i){
+  const e = images[i];
+  if (e) URL.revokeObjectURL(e.url);
+  images.splice(i, 1);
+  if (!images.length) cur = -1;
+  else if (cur > i) cur -= 1;
+  else if (cur === i) cur = Math.min(i, images.length - 1);
+  syncControls(); refreshThumbs(); draw();
+}
+
+/* ---------- サイズ（共通） ---------- */
+$('preset').addEventListener('change', () => {
+  const v = $('preset').value;
+  if (v === 'device'){
+    const dpr = window.devicePixelRatio || 1;
+    $('outW').value = Math.round(screen.width * dpr);
+    $('outH').value = Math.round(screen.height * dpr);
+  } else if (v !== 'custom'){
+    const [w, h] = v.split('x'); $('outW').value = w; $('outH').value = h;
+  }
+  draw();
+});
+['outW','outH'].forEach(id => $(id).addEventListener('input', () => { $('preset').value = 'custom'; draw(); }));
+
+/* ---------- 幕の色＝メンカラ（共通） ---------- */
+const swList = ['#e60012','#ff5a76','#ff7eb6','#ff8c1a','#ffd60a','#7ac943','#00b16a','#4fc3f7','#246bff','#9b59d0','#ffffff','#000000'];
+const swWrap = $('swatches');
+swList.forEach(c => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'sw'; b.style.background = c; b.title = c;
+  b.addEventListener('click', () => setBg(c));
+  swWrap.appendChild(b);
+});
+function setBg(c){
+  G.bg = c; $('bgColor').value = c; $('hexText').value = c; draw();
+}
+$('bgColor').addEventListener('input', () => setBg($('bgColor').value));
+$('hexText').addEventListener('change', () => {
+  let v = $('hexText').value.trim();
+  if (/^#?[0-9a-fA-F]{6}$/.test(v)){ if (v[0] !== '#') v = '#' + v; setBg(v.toLowerCase()); }
+  else $('hexText').value = G.bg;
+});
+document.querySelectorAll('[data-bgmode]').forEach(b => b.addEventListener('click', () => {
+  G.bgMode = b.dataset.bgmode;
+  document.querySelectorAll('[data-bgmode]').forEach(x => x.classList.toggle('on', x === b));
+  draw();
+}));
+$('topBar').addEventListener('input', () => {
+  G.topBar = parseInt($('topBar').value, 10) || 0;
+  $('topBarVal').textContent = G.topBar + ' px'; draw();
+});
+
+/* ---------- 位置・拡大（画像ごと） ---------- */
+document.querySelectorAll('[data-fit]').forEach(b => b.addEventListener('click', () => {
+  G.fit = b.dataset.fit;
+  document.querySelectorAll('[data-fit]').forEach(x => x.classList.toggle('on', x === b));
+  draw();
+}));
+function syncControls(){
+  const e = curE();
+  const z = e ? e.zoom : 1, x = e ? e.x : 0, y = e ? e.y : 0;
+  $('zoom').value = Math.round(z * 100);
+  $('zoomVal').textContent = Math.round(z * 100) + '%';
+  $('offX').value = Math.round(x); $('xVal').textContent = Math.round(x) + ' px';
+  $('offY').value = Math.round(y); $('yVal').textContent = Math.round(y) + ' px';
+}
+$('zoom').addEventListener('input', () => { const e = curE(); if (!e) return; e.zoom = (parseInt($('zoom').value, 10) || 100) / 100; $('zoomVal').textContent = $('zoom').value + '%'; draw(); });
+$('offX').addEventListener('input', () => { const e = curE(); if (!e) return; e.x = parseInt($('offX').value, 10) || 0; $('xVal').textContent = e.x + ' px'; draw(); });
+$('offY').addEventListener('input', () => { const e = curE(); if (!e) return; e.y = parseInt($('offY').value, 10) || 0; $('yVal').textContent = e.y + ' px'; draw(); });
+document.querySelectorAll('[data-nx]').forEach(b => {
+  let timer = null;
+  const step = mult => { const e = curE(); if (!e) return; e.x += parseInt(b.dataset.nx,10) * mult; e.y += parseInt(b.dataset.ny,10) * mult; syncControls(); draw(); };
+  b.addEventListener('pointerdown', ev => { ev.preventDefault(); step(1); timer = setTimeout(() => { timer = setInterval(() => step(10), 60); }, 450); });
+  ['pointerup','pointerleave','pointercancel'].forEach(ev2 => b.addEventListener(ev2, () => {
+    if (timer){ clearTimeout(timer); clearInterval(timer); timer = null; }
+  }));
+});
+$('centerBtn').addEventListener('click', () => { const e = curE(); if (!e) return; e.x = 0; e.y = 0; e.zoom = 1; syncControls(); draw(); });
+$('rotBtn').addEventListener('click', () => { const e = curE(); if (!e) return; e.rot = (e.rot + 90) % 360; draw(); });
+$('applyAllBtn').addEventListener('click', () => {
+  const e = curE(); if (!e) return;
+  images.forEach(o => { o.zoom = e.zoom; o.x = e.x; o.y = e.y; o.rot = e.rot; });
+  draw();
+});
+
+/* プレビューのドラッグ移動 */
+let drag = null;
+stage.addEventListener('pointerdown', e => {
+  if (!curE()) return;
+  drag = { px: e.clientX, py: e.clientY, x: curE().x, y: curE().y };
+  stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove', e => {
+  if (!drag || !curE()) return;
+  const r = cv.getBoundingClientRect();
+  curE().x = Math.round(drag.x + (e.clientX - drag.px) * (cv.width / r.width));
+  curE().y = Math.round(drag.y + (e.clientY - drag.py) * (cv.height / r.height));
+  syncControls(); draw();
+});
+['pointerup','pointercancel'].forEach(ev => stage.addEventListener(ev, () => { drag = null; }));
+
+/* ---------- 時計プレビュー ---------- */
+function tickClock(){
+  const now = new Date();
+  const wd = ['日','月','火','水','木','金','土'][now.getDay()];
+  $('clockDate').textContent = (now.getMonth()+1) + '月' + now.getDate() + '日（' + wd + '）';
+  $('clockTime').textContent = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+}
+tickClock(); setInterval(tickClock, 20000);
+$('clockToggle').addEventListener('change', () => clockEl.classList.toggle('show', $('clockToggle').checked));
+$('clockWhite').addEventListener('click', () => { clockEl.classList.remove('dark'); $('clockWhite').classList.add('on'); $('clockBlack').classList.remove('on'); });
+$('clockBlack').addEventListener('click', () => { clockEl.classList.add('dark'); $('clockBlack').classList.add('on'); $('clockWhite').classList.remove('on'); });
+
+/* ---------- 書き出し ---------- */
+function fileNameFor(e, used){
+  const { w, h } = outSize();
+  let base = e.name + '-wallpaper-' + w + 'x' + h;
+  let name = base + '.png', n = 2;
+  while (used.has(name)){ name = base + '-' + (n++) + '.png'; }
+  used.add(name);
+  return name;
+}
+function canvasBlob(c){ return new Promise(res => c.toBlob(res, 'image/png')); }
+function downloadBlob(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function renderEntryBlob(e){
+  const { w: W, h: H } = outSize();
+  const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
+  render(oc.getContext('2d'), W, H, e);
+  return canvasBlob(oc);
+}
+$('dlBtn').addEventListener('click', async () => {
+  const e = curE(); if (!e){ alert('先に画像を選んでください'); return; }
+  downloadBlob(await renderEntryBlob(e), fileNameFor(e, new Set()));
+});
+$('shareBtn').addEventListener('click', async () => {
+  const e = curE(); if (!e){ alert('先に画像を選んでください'); return; }
+  const blob = await renderEntryBlob(e);
+  const file = new File([blob], fileNameFor(e, new Set()), { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })){
+    try{ await navigator.share({ files: [file] }); }catch(err){ /* キャンセル時は何もしない */ }
+  } else downloadBlob(blob, file.name);
+});
+$('batchBtn').addEventListener('click', async () => {
+  if (!images.length){ alert('先に画像を選んでください'); return; }
+  const used = new Set(), files = [], blobs = [];
+  for (const e of images){
+    const blob = await renderEntryBlob(e);
+    blobs.push(blob);
+    files.push(new File([blob], fileNameFor(e, used), { type: 'image/png' }));
+  }
+  if (navigator.canShare && navigator.canShare({ files })){
+    try{ await navigator.share({ files }); }catch(err){ /* キャンセル時は何もしない */ }
+  } else {
+    /* 共有が使えない環境では1枚ずつダウンロード */
+    for (let i = 0; i < files.length; i++){
+      downloadBlob(blobs[i], files[i].name);
+      await new Promise(r => setTimeout(r, 700));
+    }
+  }
+});
+
+/* ---------- 全部リセット（次の人用） ---------- */
+$('resetBtn').addEventListener('click', () => {
+  if (images.length && !confirm('読み込んだ画像と調整を全部消して、最初からやり直しますか？')) return;
+  images.forEach(e => URL.revokeObjectURL(e.url));
+  images = []; cur = -1;
+  G.topBar = 0; $('topBar').value = 0; $('topBarVal').textContent = '0 px';
+  setBg('#000000');
+  syncControls(); refreshThumbs(); draw();
+});
+
+syncControls();
+draw();
+</script>
+</body>
+</html>
