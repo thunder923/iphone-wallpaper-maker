@@ -1,6 +1,9 @@
-# iPhone壁紙メーカー
+# スマホ壁紙メーカー
 
-推しメンの画像を iPhone の壁紙サイズに変換する、単一HTMLのツールです。
+推しメンの画像をスマホの壁紙サイズに変換する、単一HTMLの無料ツールです。誰でもURLを開くだけで使えます。
+
+**公開URL: https://iphone-wallpaper-maker.vercel.app/**
+（予備: https://thunder923.github.io/iphone-wallpaper-maker/）
 
 - 画像を画面サイズ（プリセット／カスタム／この端末に自動判定）に変換
 - 余白はメンカラなど指定色の「幕」で充填（画像の平均色・ぼかし幕も可）
