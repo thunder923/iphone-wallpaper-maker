@@ -180,6 +180,13 @@
       <button class="seg" data-fit="cover" type="button">画面いっぱい（切り取り）</button>
     </div>
     <div class="hint">「全体を表示／画面いっぱい」は全画像共通の設定です。</div>
+    <div class="slider-head"><span>最適化の寄せ具合（0＝全体表示 〜 100＝画面いっぱい）</span><output id="optTVal">45%</output></div>
+    <input type="range" id="optT" min="0" max="100" step="1" value="45">
+    <div class="segrow" style="margin-top:10px;">
+      <button class="seg" id="optBtn" type="button" style="background:var(--accent);color:var(--accent-txt);border-color:transparent;font-weight:700;">✨ この画像を最適化</button>
+      <button class="seg" id="optAllBtn" type="button">✨ 全画像を最適化</button>
+    </div>
+    <div class="hint">最適化＝画像の比率に合わせて、「全体表示だと小さすぎ／画面いっぱいだと切れすぎ」の間くらいの程よい大きさに自動で合わせます（中央配置になります）。横長・スクエアな画像ほど少しだけ拡大して幕を減らし、縦長で画面比率に近い画像はほぼそのまま画面いっぱいにします。</div>
     <div class="slider-head"><span>拡大・縮小</span><output id="zoomVal">100%</output></div>
     <input type="range" id="zoom" min="10" max="400" step="1" value="100">
     <div class="slider-head"><span>左右の位置</span><output id="xVal">0 px</output></div>
@@ -427,6 +434,21 @@ document.querySelectorAll('[data-nx]').forEach(b => {
 });
 $('centerBtn').addEventListener('click', () => { const e = curE(); if (!e) return; e.x = 0; e.y = 0; e.zoom = 1; syncControls(); draw(); });
 $('rotBtn').addEventListener('click', () => { const e = curE(); if (!e) return; e.rot = (e.rot + 90) % 360; draw(); });
+/* 最適化：画像の比率に応じて、全体表示(contain)と画面いっぱい(cover)の間くらいの程よいスケールにする */
+function optimizeEntry(e){
+  const d = imgDims(e); if (!d.w || !d.h) return;
+  const { w: W, h: H } = outSize();
+  const sc = Math.min(W / d.w, H / d.h);   /* 全体表示スケール */
+  const sv = Math.max(W / d.w, H / d.h);   /* 画面いっぱいスケール */
+  const t = (parseInt($('optT').value, 10) || 0) / 100;
+  const s = sc * Math.pow(sv / sc, t);
+  const base = G.fit === 'cover' ? sv : sc;
+  e.zoom = Math.min(8, Math.max(0.05, s / base));
+  e.x = 0; e.y = 0;
+}
+$('optT').addEventListener('input', () => { $('optTVal').textContent = $('optT').value + '%'; });
+$('optBtn').addEventListener('click', () => { const e = curE(); if (!e) return; optimizeEntry(e); syncControls(); draw(); });
+$('optAllBtn').addEventListener('click', () => { images.forEach(optimizeEntry); syncControls(); draw(); });
 $('applyAllBtn').addEventListener('click', () => {
   const e = curE(); if (!e) return;
   images.forEach(o => { o.zoom = e.zoom; o.x = e.x; o.y = e.y; o.rot = e.rot; });
