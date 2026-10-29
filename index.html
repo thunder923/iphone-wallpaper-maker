@@ -135,13 +135,45 @@
     <h2>画面サイズ（全画像共通）</h2>
     <label class="row"><span>端末プリセット</span>
       <select id="preset">
-        <option value="device">この端末に合わせる</option>
-        <option value="1290x2796" selected>iPhone 15 Pro Max（1290×2796）</option>
-        <option value="1320x2868">iPhone 16 Pro Max（1320×2868）</option>
-        <option value="1206x2622">iPhone 16 Pro（1206×2622）</option>
-        <option value="1179x2556">iPhone 15 / 15 Pro / 16（1179×2556）</option>
-        <option value="1170x2532">iPhone 13 / 14（1170×2532）</option>
-        <option value="750x1334">iPhone SE（750×1334）</option>
+        <option value="device">この端末に合わせる（自動判定）</option>
+        <optgroup label="iPhone">
+          <option value="1320x2868">17 Pro Max / 16 Pro Max（1320×2868）</option>
+          <option value="1290x2796" selected>16 Plus / 15 Pro Max / 15 Plus / 14 Pro Max（1290×2796）</option>
+          <option value="1284x2778">14 Plus / 13 Pro Max / 12 Pro Max（1284×2778）</option>
+          <option value="1260x2736">Air（1260×2736）</option>
+          <option value="1206x2622">17 Pro / 17 / 16 Pro（1206×2622）</option>
+          <option value="1179x2556">16 / 15 Pro / 15 / 14 Pro（1179×2556）</option>
+          <option value="1170x2532">16e / 14 / 13 Pro / 13 / 12 Pro / 12（1170×2532）</option>
+          <option value="1242x2688">11 Pro Max / XS Max（1242×2688）</option>
+          <option value="1125x2436">11 Pro / XS / X（1125×2436）</option>
+          <option value="1080x2340">13 mini / 12 mini（1080×2340）</option>
+          <option value="828x1792">11 / XR（828×1792）</option>
+          <option value="1080x1920">8 Plus / 7 Plus（1080×1920）</option>
+          <option value="750x1334">SE（第2・第3世代）/ 8 / 7（750×1334）</option>
+          <option value="640x1136">SE（第1世代）/ 5s（640×1136）</option>
+        </optgroup>
+        <optgroup label="Google Pixel">
+          <option value="1344x2992">Pixel 10 Pro XL / 9 Pro XL / 8 Pro（1344×2992）</option>
+          <option value="1280x2856">Pixel 10 Pro / 9 Pro（1280×2856）</option>
+          <option value="1080x2424">Pixel 9 / 9a（1080×2424）</option>
+          <option value="1080x2400">Pixel 8 / 8a / 7 / 7a（1080×2400）</option>
+          <option value="1440x3120">Pixel 7 Pro / 6 Pro（1440×3120）</option>
+        </optgroup>
+        <optgroup label="Galaxy">
+          <option value="1440x3120">Galaxy S25 Ultra / S24 Ultra 系（1440×3120）</option>
+          <option value="1080x2340">Galaxy S25 / S24 / S23 / A55 系（1080×2340）</option>
+          <option value="1080x2640">Galaxy Z Flip 系 メイン（1080×2640）</option>
+        </optgroup>
+        <optgroup label="Xperia">
+          <option value="1644x3840">Xperia 1 V / 1 IV 系 4K（1644×3840）</option>
+          <option value="1080x2340">Xperia 1 VI 系（1080×2340）</option>
+          <option value="1080x2520">Xperia 10 VI / 10 V / 5 V 系（1080×2520）</option>
+        </optgroup>
+        <optgroup label="AQUOS・その他">
+          <option value="1080x2432">AQUOS sense8 / sense7 系（1080×2432）</option>
+          <option value="1220x2712">Redmi Note 13 Pro 系（1220×2712）</option>
+          <option value="1080x2400">Android FHD+ 汎用（1080×2400）</option>
+        </optgroup>
         <option value="custom">カスタム（下の数値）</option>
       </select>
     </label>
