@@ -184,6 +184,7 @@
         <input type="number" id="outH" value="2796" min="100" max="6000" inputmode="numeric">
       </span>
     </label>
+    <div class="hint" id="deviceNote">開いた端末の画面サイズを自動で読み取って、合うプリセットを最初に選ぶようにしています。</div>
   </div>
 
   <div class="card">
@@ -411,6 +412,26 @@ $('preset').addEventListener('change', () => {
   draw();
 });
 ['outW','outH'].forEach(id => $(id).addEventListener('input', () => { $('preset').value = 'custom'; draw(); }));
+/* 開いた端末の画面サイズを自動検出し、一致するプリセットがあればそれを、無ければ実寸を初期値にする */
+function detectDevice(){
+  try{
+    const dpr = window.devicePixelRatio || 1;
+    const w0 = Math.round(screen.width * dpr), h0 = Math.round(screen.height * dpr);
+    const W = Math.min(w0, h0), H = Math.max(w0, h0);
+    if (!W || !H) return;
+    const val = W + 'x' + H;
+    const opt = Array.from($('preset').options).find(o => o.value === val);
+    $('outW').value = W; $('outH').value = H;
+    if (opt){
+      $('preset').value = val;
+      $('deviceNote').textContent = '📱 この端末は ' + W + '×' + H + ' です。「' + opt.textContent + '」を自動で選びました。';
+    } else {
+      $('preset').value = 'device';
+      $('deviceNote').textContent = '📱 この端末は ' + W + '×' + H + ' です。プリセットに無いサイズなので、その実寸を初期値にしました。';
+    }
+  }catch(e){ /* 検出できない環境では既定値のまま */ }
+  draw();
+}
 
 /* ---------- 幕の色＝メンカラ（共通） ---------- */
 const swList = ['#e60012','#ff5a76','#ff7eb6','#ff8c1a','#ffd60a','#7ac943','#00b16a','#4fc3f7','#246bff','#9b59d0','#ffffff','#000000'];
@@ -583,7 +604,7 @@ $('resetBtn').addEventListener('click', () => {
 });
 
 syncControls();
-draw();
+detectDevice();
 </script>
 </body>
 </html>
