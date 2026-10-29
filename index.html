@@ -300,7 +300,7 @@ function render(g, W, H, e){
     const d = imgDims(e);
     const s = Math.max(W / d.w, H / d.h) * 1.15;
     g.filter = 'blur(' + Math.round(W * 0.045) + 'px) brightness(.85) saturate(1.2)';
-    drawImg(g, e, W/2, H/2, d.w * s, d.h * s);
+    drawImg(g, e, W/2, H/2, s);
     g.filter = 'none';
   } else {
     g.fillStyle = G.bgMode === 'average' ? (e ? e.avg : '#000000') : G.bg;
@@ -311,19 +311,20 @@ function render(g, W, H, e){
     const d = imgDims(e);
     const base = G.fit === 'cover' ? Math.max(W / d.w, H / d.h) : Math.min(W / d.w, H / d.h);
     const s = base * e.zoom;
-    drawImg(g, e, W/2 + e.x, H/2 + e.y, d.w * s, d.h * s);
+    drawImg(g, e, W/2 + e.x, H/2 + e.y, s);
   }
   if (G.topBar > 0){
     g.fillStyle = G.bgMode === 'average' ? (e ? e.avg : '#000000') : G.bg;
     g.fillRect(0, 0, W, Math.min(G.topBar, H));
   }
 }
-function drawImg(g, e, cx, cy, dw, dh){
+/* 描画は必ず「単一の倍率 s」だけを使う。幅と高さを別々の倍率で伸ばす経路は無いので、
+   最適化・拡大・フィットのどれを使っても画像のアスペクト比は元と完全一致し、歪まない。 */
+function drawImg(g, e, cx, cy, s){
   g.save();
   g.translate(cx, cy);
   g.rotate(e.rot * Math.PI / 180);
-  const swap = e.rot % 180 !== 0;
-  const w = swap ? dh : dw, h = swap ? dw : dh;
+  const w = e.img.naturalWidth * s, h = e.img.naturalHeight * s;
   g.drawImage(e.img, -w/2, -h/2, w, h);
   g.restore();
 }
