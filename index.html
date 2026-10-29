@@ -337,9 +337,15 @@ function drawImg(g, e, cx, cy, s){
 }
 function draw(){
   const { w: W, h: H } = outSize();
-  if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
+  /* プレビューは表示用に解像度を抑えて描く（アプリ内ブラウザ等のメモリ制限で落ちるのを防ぐ）。
+     書き出しは renderEntryBlob が別キャンバスでフル解像度描画するので画質は変わらない。 */
+  const k = Math.min(1, 900 / W);
+  const bw = Math.max(50, Math.round(W * k)), bh = Math.max(50, Math.round(H * k));
+  if (cv.width !== bw || cv.height !== bh){ cv.width = bw; cv.height = bh; }
   $('sizeNote').textContent = W + '×' + H;
+  ctx.setTransform(k, 0, 0, k, 0, 0);
   render(ctx, W, H, curE());
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   $('emptyMsg').style.display = curE() ? 'none' : 'flex';
   const e = curE();
   $('curLabel').textContent = e ? ('編集中：' + (cur + 1) + '枚目 / 全' + images.length + '枚（' + e.name + '）') : '編集中：-';
@@ -528,8 +534,9 @@ stage.addEventListener('pointerdown', e => {
 stage.addEventListener('pointermove', e => {
   if (!drag || !curE()) return;
   const r = cv.getBoundingClientRect();
-  curE().x = Math.round(drag.x + (e.clientX - drag.px) * (cv.width / r.width));
-  curE().y = Math.round(drag.y + (e.clientY - drag.py) * (cv.height / r.height));
+  const { w: W, h: H } = outSize();
+  curE().x = Math.round(drag.x + (e.clientX - drag.px) * (W / r.width));
+  curE().y = Math.round(drag.y + (e.clientY - drag.py) * (H / r.height));
   syncControls(); draw();
 });
 ['pointerup','pointercancel'].forEach(ev => stage.addEventListener(ev, () => { drag = null; }));
