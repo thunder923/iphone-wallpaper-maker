@@ -218,7 +218,7 @@
       <button class="seg" id="optBtn" type="button" style="background:var(--accent);color:var(--accent-txt);border-color:transparent;font-weight:700;">✨ この画像を最適化</button>
       <button class="seg" id="optAllBtn" type="button">✨ 全画像を最適化</button>
     </div>
-    <div class="hint">最適化＝画像の比率に合わせて、「全体表示だと小さすぎ／画面いっぱいだと切れすぎ」の間くらいの程よい大きさに自動で合わせます（中央配置になります）。横長・スクエアな画像ほど少しだけ拡大して幕を減らし、縦長で画面比率に近い画像はほぼそのまま画面いっぱいにします。</div>
+    <div class="hint">最適化＝画像の比率に合わせて、「全体表示だと小さすぎ／画面いっぱいだと切れすぎ」の間くらいの程よい大きさに自動で合わせます（中央配置になります）。横長・スクエアな画像ほど少しだけ拡大して幕を減らし、縦長で画面比率に近い画像はほぼそのまま画面いっぱいにします。拡大は元の画像サイズを超える分が自動で抑えられるので、引き伸ばしで画質が落ちにくくなっています。縦横は常に同じ倍率で、画像が歪むことはありません。</div>
     <div class="slider-head"><span>拡大・縮小</span><output id="zoomVal">100%</output></div>
     <input type="range" id="zoom" min="10" max="400" step="1" value="100">
     <div class="slider-head"><span>左右の位置</span><output id="xVal">0 px</output></div>
@@ -474,7 +474,10 @@ function optimizeEntry(e){
   const sc = Math.min(W / d.w, H / d.h);   /* 全体表示スケール */
   const sv = Math.max(W / d.w, H / d.h);   /* 画面いっぱいスケール */
   const t = (parseInt($('optT').value, 10) || 0) / 100;
-  const s = sc * Math.pow(sv / sc, t);
+  let s = sc * Math.pow(sv / sc, t);
+  /* 画質キャップ: 元の解像度(倍率1.0)を超える拡大分は35%に圧縮し、引き伸ばしによる画質劣化を抑える。
+     元より大きい画像（縮小のみ）には影響しない。 */
+  if (s > 1) s = 1 + (s - 1) * 0.35;
   const base = G.fit === 'cover' ? sv : sc;
   e.zoom = Math.min(8, Math.max(0.05, s / base));
   e.x = 0; e.y = 0;
