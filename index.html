@@ -92,6 +92,15 @@
   .dim{display:flex; gap:8px; align-items:center;}
   .dim input{width:88px;}
   footer{color:var(--sub); font-size:11.5px; text-align:center; padding:0 16px 28px; line-height:1.6;}
+  footer a{color:inherit; text-decoration:underline;}
+  .upm-overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:9999; padding:16px;}
+  .upm-overlay.open{display:flex;}
+  .upm-box{background:#fff; color:#1a1a1a; border-radius:14px; max-width:640px; width:100%; max-height:85vh; overflow:auto; padding:20px; font-size:14px; line-height:1.7; text-align:left;}
+  .upm-box h2{font-size:16px; margin:18px 0 6px;}
+  .upm-box h2:first-of-type{margin-top:2px;}
+  .upm-box p{font-size:13.5px; margin:6px 0;}
+  .upm-box ul,.upm-box ol{padding-left:20px; margin:6px 0; font-size:13.5px;}
+  .upm-close{float:right; background:#111; color:#fff; border:0; border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer;}
 </style>
 </head>
 <body>
@@ -260,7 +269,7 @@
   </div>
 
 </main>
-<footer>このツールは端末内だけで動作します（画像のアップロードなし）。</footer>
+<footer>このツールは端末内だけで動作します（画像のアップロードなし）。<br><a href="#" id="upmLink">使い方・プライバシーポリシー</a></footer>
 
 <script>
 'use strict';
@@ -618,6 +627,27 @@ $('resetBtn').addEventListener('click', () => {
 
 syncControls();
 detectDevice();
+</script>
+<div class="upm-overlay" id="upmOverlay"><div class="upm-box">
+  <button class="upm-close" id="upmClose" type="button">閉じる</button>
+  <h2>使い方</h2>
+  <ol>
+    <li>端末プリセットを選びます（開いた端末に合うサイズが自動で選ばれています。プリセットに無いサイズはカスタム指定もできます）。</li>
+    <li>画像を読み込みます（同じ人の画像は複数まとめて読み込めます）。</li>
+    <li>幕の色（メンカラなど）と種類（単色／画像の平均色／ぼかし）を選びます。</li>
+    <li>ドラッグ・スライダー・回転・1pxボタンで位置と大きさを調整します（「最適化」で自動調整、ロック画面の時計プレビューで見え方を確認できます）。</li>
+    <li>書き出しボタンでPNGを保存します（複数枚は「全部まとめて書き出し」→ 共有シートで「画像を保存」）。</li>
+  </ol>
+  <p>別の人に切り替えるときは「全部リセット」で画像・色・調整をまとめて消せます。</p>
+  <h2>プライバシーポリシー</h2>
+  <ul>
+    <li>読み込んだ画像は、お使いの端末のブラウザ内だけで処理され、サーバーや外部へ送信されることは一切ありません。</li>
+    <li>画像や設定が保存されることはありません。ページを閉じるとすべて消えます。</li>
+    <li>アクセス解析・広告・Cookieによる追跡は行っていません。</li>
+  </ul>
+</div></div>
+<script>
+(function(){var o=document.getElementById('upmOverlay');var l=document.getElementById('upmLink');var c=document.getElementById('upmClose');if(l)l.addEventListener('click',function(e){e.preventDefault();o.classList.add('open')});if(c)c.addEventListener('click',function(){o.classList.remove('open')});if(o)o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open')})})();
 </script>
 </body>
 </html>
